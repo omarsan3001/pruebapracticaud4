@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
@@ -64,7 +66,13 @@ public class BookingServiceTest {
      */
     @Test
     void getAvailablePlaceCountTest() {
+        List listaHabitacion = new ArrayList();
+        listaHabitacion.add(new Room("1",4));
+        listaHabitacion.add(new Room("2",4));
+        listaHabitacion.add(new Room("3",2));
+        when(roomService.getAvailableRooms()).thenReturn(listaHabitacion);
 
+        assertThat(bookingService.getAvailablePlaceCount()).isEqualTo(10);
     }
 
     /**
@@ -75,7 +83,10 @@ public class BookingServiceTest {
      */
      @Test
     void calculatePriceTest() {
-
+         assertThat(bookingService.calculatePrice(bookingRequest1)).isEqualTo(1200);
+        verify(bookingRequest1).getDateFrom();
+        verify(bookingRequest1).getDateTo();
+        verify(bookingRequest1).getGuestCount();
      }
 
 
@@ -92,6 +103,14 @@ public class BookingServiceTest {
     @Test
     void makeBookingTest1() {
 
+        when(roomService.findAvailableRoomId(bookingRequest2)).thenReturn("101");
+        bookingService.makeBooking(bookingRequest2);
+        verify(bookingRequest2).isPrepaid();
+        verify(paymentService).pay(bookingRequestCaptor.capture(),priceCaptor.capture());
+
+        assertThat(bookingRequestCaptor.getValue().getRoomId()).isEqualTo("101");
+        assertThat(priceCaptor.getValue()).isEqualTo(5550);
+
     }
 
     /**
@@ -107,6 +126,14 @@ public class BookingServiceTest {
      */
     @Test
     void makeBookingTest2() {
+        when(roomService.findAvailableRoomId(bookingRequest2)).thenReturn("101");
+        bookingService.makeBooking(bookingRequest2);
+        verify(bookingService).makeBooking(bookingRequestCaptor.capture());
+
+        InOrder inOrder = inOrder(roomService,mailSender);
+        inOrder.verify(roomService).bookRoom(bookingRequestCaptor.getValue().getRoomId());
+        inOrder.verify(mailSender).sendBookingConfirmation(bookingDAO.save(bookingRequestCaptor.getValue()));
+
 
     }
 }

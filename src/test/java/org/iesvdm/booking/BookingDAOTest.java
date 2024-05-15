@@ -3,6 +3,8 @@ package org.iesvdm.booking;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.*;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +28,21 @@ public class BookingDAOTest {
      */
     @Test
     void  getAllBookingRequestsTest() {
-
+        BookingRequest bookingRequest1 = new BookingRequest("1"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
+        BookingRequest bookingRequest2 = new BookingRequest("2"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
+        bookings.put(bookingRequest1.getUserId(),bookingRequest1);
+        bookings.put(bookingRequest2.getUserId(),bookingRequest2);
+        assertThat(bookingDAO.getAllBookingRequests()).hasSize(2);
     }
 
     /**
@@ -37,7 +53,22 @@ public class BookingDAOTest {
      */
     @Test
     void getAllUUIDsTest() {
+        BookingRequest bookingRequest1 = new BookingRequest("1"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
+        BookingRequest bookingRequest2 = new BookingRequest("2"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
 
+        String uuid1 = bookingDAO.save(bookingRequest1);
+        String uuid2 = bookingDAO.save(bookingRequest2);
+        assertThat(bookingDAO.getAllUUIDs()).containsOnly(uuid1,uuid2);
     }
 
 
@@ -49,7 +80,29 @@ public class BookingDAOTest {
      */
     @Test
     void getTest() {
+        BookingRequest bookingRequest1 = new BookingRequest("1"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
+        BookingRequest bookingRequest2 = new BookingRequest("2"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
+        bookingDAO.save(bookingRequest1);
+        bookingDAO.save(bookingRequest2);
 
+        for (String uuid : bookingDAO.getAllUUIDs()) {
+            if (bookingDAO.get(uuid).getUserId().equals("1")) {
+                assertThat(bookingDAO.get(uuid).getUserId()).isEqualTo(bookingRequest1.getUserId());
+            }else {
+                assertThat(bookingDAO.get(uuid).getUserId()).isEqualTo(bookingRequest2.getUserId());
+            }
+
+        }
     }
 
     /**
@@ -60,7 +113,24 @@ public class BookingDAOTest {
      */
     @Test
     void deleteTest() {
+        BookingRequest bookingRequest1 = new BookingRequest("1"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
+        BookingRequest bookingRequest2 = new BookingRequest("2"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
+        String uuid1 = bookingDAO.save(bookingRequest1);
+        String uuid2 = bookingDAO.save(bookingRequest2);
 
+        bookingDAO.delete(uuid1);
+
+        assertThat(bookingDAO.getAllUUIDs()).containsOnly(uuid2);
     }
 
     /**
@@ -71,7 +141,20 @@ public class BookingDAOTest {
      */
     @Test
     void saveTwiceSameBookingRequestTest() {
+        BookingRequest bookingRequest1 = new BookingRequest("1"
+                , LocalDate.of(2024,6, 10)
+                , LocalDate.of(2024, 6, 16)
+                ,4
+                ,false
+        );
 
+        String uuid1 = bookingDAO.save(bookingRequest1);
+        String uuid2 = bookingDAO.save(bookingRequest1);
+
+        assertThat(bookingDAO.getAllUUIDs()).containsOnly(uuid1,uuid2);
+
+        assertThat(bookingDAO.get(uuid1).getUserId()).isEqualTo(bookingRequest1.getUserId());
+        assertThat(bookingDAO.get(uuid2).getUserId()).isEqualTo(bookingRequest1.getUserId());
     }
 
 }
